@@ -1,0 +1,31 @@
+{
+  "projects": {
+    "default": "societyfix-dev",
+    "development": "societyfix-dev",
+    "staging": "societyfix-staging",
+    "production": "societyfix-prod"
+  },
+  "targets": {
+    "societyfix-dev": {
+      "hosting": {
+        "app": [
+          "societyfix-dev-app"
+        ]
+      }
+    },
+    "societyfix-staging": {
+      "hosting": {
+        "app": [
+          "societyfix-staging-app"
+        ]
+      }
+    },
+    "societyfix-prod": {
+      "hosting": {
+        "app": [
+          "societyfix-prod-app"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+dist/
+build/
+coverage/
+
+# OS and Editors
+.DS_Store
+*.pem
+*.log
+.idea/
+.vscode/
+
+# Environment Variables (Never commit secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# Terraform State & Credentials
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl.tmp
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Docker & Temporary
+*.tar
+.dockerignore.bak

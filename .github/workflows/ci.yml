@@ -1,0 +1,39 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Lint, Test & Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type-check and linter
+        run: npm run lint
+
+      - name: Run automated tests
+        run: npm run test
+
+      - name: Build frontend production bundle
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Validate Docker build
+        run: docker build -t societyfix-ci:test .

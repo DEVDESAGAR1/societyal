@@ -1,0 +1,43 @@
+# ==============================================================================
+# SocietyFix AI — Cloud Build CI Pipeline (Pull Requests & Validation)
+# ==============================================================================
+
+steps:
+  # Step 1: Install dependencies with strict lockfile check
+  - name: 'node:22-alpine'
+    id: 'install-dependencies'
+    entrypoint: 'npm'
+    args: ['ci']
+
+  # Step 2: Run TypeScript Type Check & Linter
+  - name: 'node:22-alpine'
+    id: 'lint-and-typecheck'
+    entrypoint: 'npm'
+    args: ['run', 'lint']
+
+  # Step 3: Run Automated Test Suite
+  - name: 'node:22-alpine'
+    id: 'unit-tests'
+    entrypoint: 'npm'
+    args: ['run', 'test']
+
+  # Step 4: Validate Frontend Production Build
+  - name: 'node:22-alpine'
+    id: 'build-frontend'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    env:
+      - 'NODE_ENV=production'
+
+  # Step 5: Test Container Build using Multi-Stage Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-container-image'
+    args:
+      - 'build'
+      - '-t'
+      - 'societyfix-validation:$COMMIT_SHA'
+      - '.'
+
+timeout: '900s'
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,74 @@
+# ==============================================================================
+# SocietyFix AI — Cloud Build CD Deployment Pipeline
+# Stages: Build -> Publish to Artifact Registry -> Deploy to Cloud Run -> Verify
+# ==============================================================================
+
+substitutions:
+  _REGION: 'asia-south1'
+  _ENVIRONMENT: 'dev'
+  _SERVICE_NAME: 'societyfix-dev-api'
+  _REPO_NAME: 'societyfix-dev'
+
+steps:
+  # Step 1: Quality gate (Lint & Test)
+  - name: 'node:22-alpine'
+    id: 'verify-source'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        npm ci
+        npm run lint
+        npm run test
+
+  # Step 2: Build container image with commit SHA tag
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-production-image'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api:latest'
+      - '.'
+
+  # Step 3: Push image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-to-artifact-registry'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api'
+
+  # Step 4: Deploy to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-to-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api:$COMMIT_SHA'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--update-env-vars=GIT_COMMIT_SHA=$COMMIT_SHA'
+      - '--quiet'
+
+  # Step 5: Post-deployment Smoke & Health Verification
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'verify-deployment-health'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --platform=managed --region=${_REGION} --format='value(status.url)')
+        echo "Validating health probe at: $${SERVICE_URL}/api/health"
+        curl -f -s -m 10 "$${SERVICE_URL}/api/health" | grep "HEALTHY" || {
+          echo "Health probe failed! Reverting revision..."
+          exit 1
+        }
+        echo "Deployment successfully verified."
+
+timeout: '1200s'
+options:
+  logging: CLOUD_LOGGING_ONLY

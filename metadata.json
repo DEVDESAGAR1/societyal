@@ -1,0 +1,6 @@
+{
+  "name": "SocietyFix AI",
+  "description": "AI-powered operating platform and personal secretary for Indian housing societies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

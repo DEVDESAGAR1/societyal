@@ -1,0 +1,8 @@
+# Example Terraform Variables for Development
+# Copy to terraform.tfvars for local execution. Never commit real passwords to git.
+
+project_id      = "societyfix-dev"
+region          = "asia-south1"
+container_image = "asia-south1-docker.pkg.dev/societyfix-dev/societyfix-dev/api:latest"
+db_password     = "REPLACE_WITH_STRONG_GENERATED_PASSWORD_MIN_16_CHARS"
+alert_email     = "devdesagar@gmail.com"
