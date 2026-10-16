@@ -11,6 +11,10 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { logger } from './src/infrastructure/logger.ts';
 import { checkDatabaseHealth, closeDatabasePool } from './src/db/client.ts';
+import authRoutes from './src/routes/authRoutes.ts';
+import societyRoutes from './src/routes/societyRoutes.ts';
+import aiRoutes from './src/routes/aiRoutes.ts';
+import meetingRoutes from './src/routes/meetingRoutes.ts';
 
 dotenv.config();
 
@@ -20,7 +24,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
-const commitSha = process.env.GIT_COMMIT_SHA || process.env.K_REVISION || 'm1-local-dev';
+const commitSha = process.env.GIT_COMMIT_SHA || process.env.K_REVISION || 'm5-local-dev';
 const startTime = Date.now();
 
 // Body parsers
@@ -86,7 +90,7 @@ app.get('/api/health', async (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     uptimeSeconds,
     version: {
-      milestone: 'M1',
+      milestone: 'M5',
       commitSha,
       nodeVersion: process.version,
     },
@@ -111,8 +115,20 @@ app.get('/api/health', async (_req: Request, res: Response) => {
  * Verifies if container is ready to accept inbound user traffic.
  */
 app.get('/api/ready', (_req: Request, res: Response) => {
-  return res.status(200).json({ ready: true, milestone: 'M1' });
+  return res.status(200).json({ ready: true, milestone: 'M5' });
 });
+
+// Mount Authentication & Platform Administration API Routes
+app.use('/api', authRoutes);
+
+// Mount Housing Society, Membership & RBAC API Routes (Milestone M3)
+app.use('/api', societyRoutes);
+
+// Mount AI Gateway & Society Memory API Routes (Milestone M4)
+app.use('/api', aiRoutes);
+
+// Mount Meeting Capture & Minutes of Meeting API Routes (Milestone M5)
+app.use('/api', meetingRoutes);
 
 /**
  * System Version & Release Manifest
@@ -120,8 +136,8 @@ app.get('/api/ready', (_req: Request, res: Response) => {
 app.get('/api/version', (_req: Request, res: Response) => {
   return res.status(200).json({
     name: 'SocietyFix AI',
-    milestone: 'M1',
-    description: 'Google Cloud Foundation, Infrastructure as Code and CI/CD',
+    milestone: 'M5',
+    description: 'Meeting Capture & Minutes of Meeting (MoM) — Structured capture, AI draft synthesis, and managing committee approval',
     commitSha,
     environment: process.env.NODE_ENV || 'development',
   });

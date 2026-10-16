@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Pillar 4: Default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers (Pillar 3 & 4)
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "devdesagar@gmail.com"
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Entity Validation Helper for Users (Pillar 2: Anti-Update-Gap)
+    function isValidUser(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.email is string && data.email.size() <= 255 &&
+             data.fullName is string && data.fullName.size() <= 255 &&
+             (data.avatarUrl == null || (data.avatarUrl is string && data.avatarUrl.size() <= 1024)) &&
+             data.accountStatus in ['ACTIVE', 'SUSPENDED', 'DISABLED'] &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin() || (isSignedIn() && resource.data.id == request.auth.uid);
+
+      allow create: if isVerifiedUser() &&
+                      isValidId(userId) &&
+                      request.auth.uid == userId &&
+                      incoming().id == request.auth.uid &&
+                      incoming().email == request.auth.token.email &&
+                      incoming().accountStatus == 'ACTIVE' &&
+                      incoming().createdAt == request.time &&
+                      incoming().updatedAt == request.time &&
+                      incoming().keys().hasAll(['id', 'email', 'fullName', 'accountStatus', 'createdAt', 'updatedAt']) &&
+                      incoming().keys().hasOnly(['id', 'email', 'fullName', 'avatarUrl', 'accountStatus', 'createdAt', 'updatedAt']) &&
+                      isValidUser(incoming());
+
+      allow update: if isVerifiedUser() &&
+                      isValidId(userId) &&
+                      isValidUser(incoming()) &&
+                      incoming().id == existing().id &&
+                      incoming().email == existing().email &&
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().updatedAt == request.time &&
+                      (
+                        isAdmin() ||
+                        (
+                          isOwner(userId) &&
+                          existing().accountStatus == 'ACTIVE' &&
+                          incoming().accountStatus == existing().accountStatus &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'avatarUrl', 'updatedAt'])
+                        )
+                      );
+
+      allow delete: if isAdmin();
+    }
+
+    // 2. Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // 3. Heartbeat / Connection Validation Collection
+    match /test/{testId} {
+      allow read: if true;
+      allow write: if isVerifiedUser() && isValidId(testId);
+    }
+  }
+}

@@ -37,6 +37,7 @@ SocietyFix AI is an intelligent, secure, and multi-tenant operating platform des
 7. **[Reliability, Cost Controls & DR](docs/operations/DISASTER_RECOVERY_AND_COSTS.md)** — Cloud Run instance caps, Cloud SQL sizing, budget alerts ($50 Dev / $300 Prod), and disaster recovery drills.
 8. **[Infrastructure Inventory](docs/operations/INFRASTRUCTURE_INVENTORY.md)** — Resource catalog, service accounts, and CIDR network allocations in `asia-south1`.
 9. **[M1 Verification Report](docs/operations/M1_VERIFICATION_REPORT.md)** — Audit report with passing unit test results and pre-flight validation.
+10. **[Firebase & Super Admin Setup Runbook](docs/operations/FIREBASE_AND_SUPER_ADMIN_SETUP.md)** — Google Sign-In setup, authorized domains, and Super Admin bootstrap guide.
 
 ---
 
@@ -61,8 +62,8 @@ SocietyFix AI is an intelligent, secure, and multi-tenant operating platform des
 
 - [x] **M0: Product Specification, Architecture and Technical Design** *(Completed)*
 - [x] **M1: Google Cloud Foundation, CI/CD & Express Server Skeleton** *(Completed)*
-- [ ] **M2: Google Sign-in & Platform Super Admin** *(Next Milestone)*
-- [ ] **M3: Societies, Membership & Multi-Tenant RBAC**
+- [x] **M2: Google Sign-in & Platform Super Admin** *(Completed)*
+- [ ] **M3: Societies, Membership & Multi-Tenant RBAC** *(Next Milestone)*
 - [ ] **M4: Provider-Neutral AI Gateway & Society Memory (pgvector)**
 - [ ] **M5: Meeting Capture, Minutes & Resolution Extraction**
 - [ ] **M6: Task & Commitment Management**

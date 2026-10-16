@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile and public identity metadata.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Firebase UID of the user.",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified Google email address.",
+          "maxLength": 255
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Display name of the user.",
+          "maxLength": 255
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Profile picture URL.",
+          "maxLength": 1024
+        },
+        "accountStatus": {
+          "type": "string",
+          "description": "Status of the account (ACTIVE, SUSPENDED, DISABLED).",
+          "enum": ["ACTIVE", "SUSPENDED", "DISABLED"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated."
+        }
+      },
+      "required": ["id", "email", "fullName", "accountStatus", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Platform administrator identity document.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase UID of the platform administrator.",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified email of the platform administrator.",
+          "maxLength": 255
+        },
+        "role": {
+          "type": "string",
+          "description": "Administrative role title.",
+          "enum": ["SUPER_ADMIN"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when admin role was granted."
+        }
+      },
+      "required": ["userId", "email", "role", "createdAt"]
+    },
+    "ConnectionTest": {
+      "title": "ConnectionTest",
+      "description": "Document used to verify Firestore connectivity.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Connection status message.",
+          "maxLength": 64
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Test timestamp."
+        }
+      },
+      "required": ["status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profiles keyed by their Firebase UID."
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/Admin"
+      },
+      "description": "Stores trusted platform administrators for ABAC security checks."
+    },
+    "/test/{testId}": {
+      "schema": {
+        "$ref": "#/entities/ConnectionTest"
+      },
+      "description": "Heartbeat and connection validation collection."
+    }
+  }
+}
